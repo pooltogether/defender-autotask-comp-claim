@@ -8,6 +8,7 @@ function getPrizePools(network) {
   } else if (network == 'mainnet') {
     prizePoolAddresses.push(contractAddresses[1].dai.prizePool)
     prizePoolAddresses.push(contractAddresses[1].uni.prizePool)
+    prizePoolAddresses.push(contractAddresses[1].usdc.prizePool)
   } else {
     throw new Error(`Unknown network: ${network}`)
   }

@@ -2,6 +2,7 @@ const ethers = require("ethers")
 const { getPrizePools } = require('./getPrizePools')
 const { getComptroller } = require('./getComptroller')
 const ComptrollerAbi = require("./abis/Comptroller.json")
+const CompoundPrizePoolAbi = require("@pooltogether/pooltogether-contracts/abis/CompoundPrizePool.json")
 
 console.log(ComptrollerAbi)
 
@@ -14,11 +15,14 @@ exports.claim = async function (relayer, network) {
   console.log(`Claiming for comptroller(${comptrollerAddress})`)
   const comptroller = new ethers.Contract(comptrollerAddress, ComptrollerAbi, provider)
 
+
   for (let i = 0; i < prizePools.length; i++) {
-    console.log(`Claiming for prize pool ${prizePools[i]}...`)
-    const unsignedTx = await comptroller.populateTransaction['claimComp(address)'](prizePools[i])
+    const prizePool = new ethers.Contract(prizePools[i], CompoundPrizePoolAbi, provider)
+    const cToken = await prizePool.cToken()
+    console.log(`Claiming for prize pool ${prizePools[i]} for cToken ${cToken}...`)
+    const unsignedTx = await comptroller.populateTransaction['claimComp(address,address[])'](prizePools[i], [cToken])
     if (relayer) {
-      const gasLimit = (await comptroller.estimateGas['claimComp(address)'](prizePools[i])).toNumber()
+      const gasLimit = (await comptroller.estimateGas['claimComp(address,address[])'](prizePools[i], [cToken])).toNumber()
       console.log('GAS LIMIT: ', gasLimit.toString())
       await relayer.sendTransaction({
         to: unsignedTx.to,
